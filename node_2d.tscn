@@ -1,0 +1,37 @@
+[gd_scene load_steps=6 format=3 uid="uid://bvfy4gew4m55c"]
+
+[ext_resource type="Script" path="res://node_2d.gd" id="1_fi8je"]
+
+[sub_resource type="Gradient" id="Gradient_vg85x"]
+
+[sub_resource type="GradientTexture2D" id="GradientTexture2D_dxhmf"]
+gradient = SubResource("Gradient_vg85x")
+
+[sub_resource type="Gradient" id="Gradient_dmmfv"]
+
+[sub_resource type="GradientTexture2D" id="GradientTexture2D_8c2lr"]
+gradient = SubResource("Gradient_dmmfv")
+
+[node name="Node2D" type="Node2D"]
+script = ExtResource("1_fi8je")
+
+[node name="Sprite2D" type="Sprite2D" parent="."]
+position = Vector2(75, 56)
+texture = SubResource("GradientTexture2D_dxhmf")
+
+[node name="Sprite2D2" type="Sprite2D" parent="."]
+position = Vector2(320, 63)
+texture = SubResource("GradientTexture2D_dxhmf")
+
+[node name="Sprite2D3" type="Sprite2D" parent="."]
+position = Vector2(585, 107)
+texture = SubResource("GradientTexture2D_dxhmf")
+
+[node name="CanvasLayer" type="CanvasLayer" parent="."]
+
+[node name="Sprite2D" type="Sprite2D" parent="CanvasLayer"]
+position = Vector2(989, 253)
+texture = SubResource("GradientTexture2D_8c2lr")
+
+[node name="CanvasModulate" type="CanvasModulate" parent="CanvasLayer"]
+color = Color(1, 0, 1, 1)
