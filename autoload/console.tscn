@@ -1,10 +1,23 @@
-[gd_scene load_steps=2 format=3 uid="uid://bivx0pbcl71i"]
+[gd_scene load_steps=5 format=3 uid="uid://bivx0pbcl71i"]
 
 [ext_resource type="Script" path="res://autoload/console.gd" id="1_8oyuj"]
 
-[node name="Console" type="CanvasLayer"]
+[sub_resource type="StyleBoxEmpty" id="StyleBoxEmpty_gg608"]
+
+[sub_resource type="StyleBoxEmpty" id="StyleBoxEmpty_tnl5a"]
+content_margin_left = 10.0
+content_margin_top = 0.0
+content_margin_right = 10.0
+content_margin_bottom = 10.0
+
+[sub_resource type="StyleBoxEmpty" id="StyleBoxEmpty_eug2d"]
+content_margin_right = 12.0
+content_margin_bottom = 8.0
+
+[node name="Console" type="CanvasLayer" node_paths=PackedStringArray("version_label")]
 layer = 128
 script = ExtResource("1_8oyuj")
+version_label = NodePath("VSplitContainer/PanelContainer/MarginContainer/VBoxContainer/RichTextLabel/Label")
 
 [node name="VSplitContainer" type="VSplitContainer" parent="."]
 anchors_preset = 15
@@ -21,10 +34,6 @@ layout_mode = 2
 
 [node name="MarginContainer" type="MarginContainer" parent="VSplitContainer/PanelContainer"]
 layout_mode = 2
-theme_override_constants/margin_left = 6
-theme_override_constants/margin_top = 6
-theme_override_constants/margin_right = 6
-theme_override_constants/margin_bottom = 6
 
 [node name="VBoxContainer" type="VBoxContainer" parent="VSplitContainer/PanelContainer/MarginContainer"]
 layout_mode = 2
@@ -33,13 +42,41 @@ layout_mode = 2
 layout_mode = 2
 size_flags_vertical = 3
 focus_mode = 2
+theme_override_colors/font_outline_color = Color(0, 0, 0, 1)
+theme_override_constants/outline_size = 4
+theme_override_styles/focus = SubResource("StyleBoxEmpty_gg608")
+theme_override_styles/normal = SubResource("StyleBoxEmpty_tnl5a")
+bbcode_enabled = true
 scroll_following = true
 context_menu_enabled = true
 selection_enabled = true
 
+[node name="Label" type="Label" parent="VSplitContainer/PanelContainer/MarginContainer/VBoxContainer/RichTextLabel"]
+layout_mode = 1
+anchors_preset = 3
+anchor_left = 1.0
+anchor_top = 1.0
+anchor_right = 1.0
+anchor_bottom = 1.0
+offset_left = -94.0
+offset_top = -28.0
+grow_horizontal = 0
+grow_vertical = 0
+size_flags_horizontal = 8
+size_flags_vertical = 8
+theme_override_colors/font_color = Color(1, 1, 1, 0.501961)
+theme_override_colors/font_outline_color = Color(0, 0, 0, 0.501961)
+theme_override_constants/outline_size = 3
+theme_override_font_sizes/font_size = 14
+theme_override_styles/normal = SubResource("StyleBoxEmpty_eug2d")
+text = "Project Name 1.0.0
+Godot 4.1.1
+Windows - Forward+ - NVIDIA GeForce RTX 1234"
+horizontal_alignment = 2
+
 [node name="LineEdit" type="LineEdit" parent="VSplitContainer/PanelContainer/MarginContainer/VBoxContainer"]
 layout_mode = 2
-placeholder_text = "Enter \"help\" for a list of commands"
+placeholder_text = "Enter \"help\" for instructions"
 clear_button_enabled = true
 caret_blink = true
 caret_blink_interval = 0.5
