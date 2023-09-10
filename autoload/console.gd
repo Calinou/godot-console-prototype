@@ -27,8 +27,8 @@ func _ready() -> void:
 	)
 
 	add_command("quit", ["exit_code"], "Exits the project without confirmation.",
-		func(exit_code: int = 0) -> void:
-			get_tree().quit(exit_code)
+		func(exit_code: String = "0") -> void:
+			get_tree().quit(int(exit_code))
 	)
 
 	add_command("echo", ["text"], "Prints the specified text to console with a blank line at the end.",
