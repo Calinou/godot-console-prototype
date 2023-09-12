@@ -2,6 +2,7 @@ extends Node2D
 
 
 func _ready() -> void:
+	Input.mouse_mode = Input.MOUSE_MODE_CAPTURED
 	Console.add_command("do_stuff", ["required_arg", "optional_arg"], "Do some stuff.",
 			func(required_arg: String, optional_arg: String = "2.0") -> void:
 				Console.append_line("I do stuff with %d and %d." % [float(required_arg), float(optional_arg)])
