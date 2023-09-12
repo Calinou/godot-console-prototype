@@ -2,7 +2,7 @@
 
 [ext_resource type="Script" path="res://autoload/console.gd" id="1_8oyuj"]
 
-[sub_resource type="StyleBoxEmpty" id="StyleBoxEmpty_gg608"]
+[sub_resource type="StyleBoxEmpty" id="StyleBoxEmpty_62nrf"]
 
 [sub_resource type="StyleBoxEmpty" id="StyleBoxEmpty_tnl5a"]
 content_margin_left = 10.0
@@ -48,7 +48,7 @@ size_flags_vertical = 3
 focus_mode = 2
 theme_override_colors/font_outline_color = Color(0, 0, 0, 1)
 theme_override_constants/outline_size = 4
-theme_override_styles/focus = SubResource("StyleBoxEmpty_gg608")
+theme_override_styles/focus = SubResource("StyleBoxEmpty_62nrf")
 theme_override_styles/normal = SubResource("StyleBoxEmpty_tnl5a")
 bbcode_enabled = true
 scroll_following = true

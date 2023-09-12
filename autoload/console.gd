@@ -2,6 +2,9 @@ extends CanvasLayer
 
 const VARIABLES_STORAGE_PATH = "user://variables.ini"
 
+# Detailed console is displayed first, so that commands can be entered quickly.
+# This also allows the help placeholder to display immediately, as opposed to requiring
+# a second key press.
 enum DisplayMode {
 	DISPLAY_MODE_HIDDEN,
 	DISPLAY_MODE_DETAILED,
@@ -19,6 +22,8 @@ var old_mouse_mode := Input.MOUSE_MODE_VISIBLE
 var commands := {}
 var variables := {}
 var variables_storage := ConfigFile.new()
+var input_history_current_index := 0
+var input_history := PackedStringArray()
 
 func _ready() -> void:
 	variables_storage.load(VARIABLES_STORAGE_PATH)
@@ -121,22 +126,57 @@ func _input(event: InputEvent) -> void:
 		set_display_mode(wrapi(display_mode + 1, 0, DisplayMode.DISPLAY_MODE_MAX) as DisplayMode)
 
 	# Replicate RichTextLabel scrolling behavior even if not focused on the node.
-	# Don't apply double-scrolling by checking whether the RichTextLabel is focused first.
-	# Use exact match, so that selecting text using Shift + Home/Shift + End in the input doesn't scroll the console.
-	if event.is_action_pressed(&"ui_page_up", true, true) and display_mode != DisplayMode.DISPLAY_MODE_HIDDEN and not log.has_focus():
+	# Use exact match, so that selecting text using Shift + Home or Shift + End in the input doesn't scroll the console.
+	if event.is_action_pressed(&"ui_page_up", true, true) and display_mode != DisplayMode.DISPLAY_MODE_HIDDEN:
 		log.get_v_scroll_bar().set_value(log.get_v_scroll_bar().get_value() - log.get_v_scroll_bar().get_page())
+		get_viewport().set_input_as_handled()
 
-	if event.is_action_pressed(&"ui_page_down", true, true) and display_mode != DisplayMode.DISPLAY_MODE_HIDDEN and not log.has_focus():
+	if event.is_action_pressed(&"ui_page_down", true, true) and display_mode != DisplayMode.DISPLAY_MODE_HIDDEN:
 		log.get_v_scroll_bar().set_value(log.get_v_scroll_bar().get_value() + log.get_v_scroll_bar().get_page())
+		get_viewport().set_input_as_handled()
 
-	if event.is_action_pressed(&"ui_home", true, true) and display_mode != DisplayMode.DISPLAY_MODE_HIDDEN and not log.has_focus():
+	if event.is_action_pressed(&"ui_home", true, true) and display_mode != DisplayMode.DISPLAY_MODE_HIDDEN:
 		log.get_v_scroll_bar().set_value(0)
+		get_viewport().set_input_as_handled()
 
-	if event.is_action_pressed(&"ui_end", true, true) and display_mode != DisplayMode.DISPLAY_MODE_HIDDEN and not log.has_focus():
+	if event.is_action_pressed(&"ui_end", true, true) and display_mode != DisplayMode.DISPLAY_MODE_HIDDEN:
 		log.get_v_scroll_bar().set_value(log.get_v_scroll_bar().get_max())
+		get_viewport().set_input_as_handled()
 
-	# `ui_up` and `ui_down` are not handled here, as they likely conflict with project controls
-	# (e.g. if a character is controlled using the arrow keys).
+	# Line-by-line scrolling doesn't use exact match, but requires holding down Shift to avoid conflict with gameplay keys.
+	if event.is_action_pressed(&"ui_up", true) and display_mode != DisplayMode.DISPLAY_MODE_HIDDEN and Input.is_key_pressed(KEY_SHIFT):
+		log.get_v_scroll_bar().set_value(log.get_v_scroll_bar().get_value() - log.get_theme_font("normal_font").get_height(log.get_theme_font_size("normal_font_size")))
+		get_viewport().set_input_as_handled()
+
+	if event.is_action_pressed(&"ui_down", true) and display_mode != DisplayMode.DISPLAY_MODE_HIDDEN and Input.is_key_pressed(KEY_SHIFT):
+		log.get_v_scroll_bar().set_value(log.get_v_scroll_bar().get_value() + log.get_theme_font("normal_font").get_height(log.get_theme_font_size("normal_font_size")))
+		get_viewport().set_input_as_handled()
+
+	# Scroll through console input history.
+
+	if event.is_action_pressed(&"ui_up", true, true) and not input_history.is_empty() and display_mode == DisplayMode.DISPLAY_MODE_DETAILED:
+		# Scroll to previous history entries.
+		input_history_current_index = maxi(0, input_history_current_index - 1)
+		input_line.text = input_history[input_history_current_index]
+		input_line.caret_column = input_line.text.length()
+		get_viewport().set_input_as_handled()
+
+	if event.is_action_pressed(&"ui_down", true, true) and not input_history.is_empty() and display_mode == DisplayMode.DISPLAY_MODE_DETAILED:
+		if input_history_current_index >= input_history.size() - 1:
+			# We've reached the end of the history, clear the line.
+			input_line.clear()
+			input_history_current_index = input_history.size()
+		else:
+			# Scroll to next history entries.
+			input_history_current_index = mini(input_history.size() - 1, input_history_current_index + 1)
+			input_line.text = input_history[input_history_current_index]
+			input_line.caret_column = input_line.text.length()
+
+		get_viewport().set_input_as_handled()
+
+	if event.is_action_pressed("ui_focus_next"):
+		# TODO: Implement tab completion.
+		get_viewport().set_input_as_handled()
 
 
 func append_line(text: String = "") -> void:
@@ -216,6 +256,11 @@ func _on_line_edit_text_submitted(new_text: String) -> void:
 
 	if not new_text.strip_edges().is_empty():
 		var new_text_stripped := new_text.strip_edges()
+		if input_history.is_empty() or input_history[-1] != new_text_stripped:
+			# Don't store immediate duplicate lines in history.
+			input_history.push_back(new_text_stripped)
+
+		input_history_current_index = input_history.size()
 		append_line("[i][color=gray]> " + new_text_stripped + "[/color][/i]")
 
 		var text_split := new_text_stripped.split(" ")
