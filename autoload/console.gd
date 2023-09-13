@@ -13,6 +13,7 @@ enum DisplayMode {
 }
 
 @export var split_container: VSplitContainer
+@export var panel_container: PanelContainer
 @export var log: RichTextLabel
 @export var input_line: LineEdit
 @export var version_label: Label
@@ -44,6 +45,10 @@ func _ready() -> void:
 			append_line("Example command syntax: [color=green]command_name first_argument second_argument ...[/color]")
 			append_line("Example variable syntax: [color=yellow]variable_name value[/color]")
 			append_line("Enter [color=yellow]variable_name[/color] alone to see the variable's value.")
+			append_line("")
+			append_line("Resize the console by dragging its bottom or using [color=gray]Ctrl + Shift + Up/Down[/color].")
+			append_line("Cycle console display modes to enter compact mode, where messages are visible but commands cannot be entered.")
+			append_line("To scroll messages while in compact mode, use [color=gray]Ctrl + Page Up/Down[/color], [color=gray]Ctrl + Up/Down[/color] or [color=gray]Ctrl + Home/End[/color].")
 	)
 
 	add_builtin_command("quit", ["exit_code"], "Exits the project without confirmation.",
@@ -125,31 +130,38 @@ func _input(event: InputEvent) -> void:
 	if event.is_action_pressed(&"toggle_console"):
 		set_display_mode(wrapi(display_mode + 1, 0, DisplayMode.DISPLAY_MODE_MAX) as DisplayMode)
 
-	# Replicate RichTextLabel scrolling behavior even if not focused on the node.
-	# Use exact match, so that selecting text using Shift + Home or Shift + End in the input doesn't scroll the console.
-	if event.is_action_pressed(&"ui_page_up", true, true) and display_mode != DisplayMode.DISPLAY_MODE_HIDDEN:
+	# Replicate RichTextLabel scrolling behavior even if not focused on the node when holding down Ctrl.
+	# Don't use exact match, but require holding down Ctrl to avoid conflict with gameplay or built-in LineEdit keys.
+	if event.is_action_pressed(&"ui_page_up", true) and Input.is_key_pressed(KEY_CTRL) and display_mode != DisplayMode.DISPLAY_MODE_HIDDEN:
 		log.get_v_scroll_bar().set_value(log.get_v_scroll_bar().get_value() - log.get_v_scroll_bar().get_page())
 		get_viewport().set_input_as_handled()
 
-	if event.is_action_pressed(&"ui_page_down", true, true) and display_mode != DisplayMode.DISPLAY_MODE_HIDDEN:
+	if event.is_action_pressed(&"ui_page_down", true) and Input.is_key_pressed(KEY_CTRL) and display_mode != DisplayMode.DISPLAY_MODE_HIDDEN:
 		log.get_v_scroll_bar().set_value(log.get_v_scroll_bar().get_value() + log.get_v_scroll_bar().get_page())
 		get_viewport().set_input_as_handled()
 
-	if event.is_action_pressed(&"ui_home", true, true) and display_mode != DisplayMode.DISPLAY_MODE_HIDDEN:
+	if event.is_action_pressed(&"ui_home", true) and display_mode != DisplayMode.DISPLAY_MODE_HIDDEN and Input.is_key_pressed(KEY_CTRL):
 		log.get_v_scroll_bar().set_value(0)
 		get_viewport().set_input_as_handled()
 
-	if event.is_action_pressed(&"ui_end", true, true) and display_mode != DisplayMode.DISPLAY_MODE_HIDDEN:
+	if event.is_action_pressed(&"ui_end", true) and display_mode != DisplayMode.DISPLAY_MODE_HIDDEN and Input.is_key_pressed(KEY_CTRL):
 		log.get_v_scroll_bar().set_value(log.get_v_scroll_bar().get_max())
 		get_viewport().set_input_as_handled()
 
-	# Line-by-line scrolling doesn't use exact match, but requires holding down Shift to avoid conflict with gameplay keys.
-	if event.is_action_pressed(&"ui_up", true) and display_mode != DisplayMode.DISPLAY_MODE_HIDDEN and Input.is_key_pressed(KEY_SHIFT):
-		log.get_v_scroll_bar().set_value(log.get_v_scroll_bar().get_value() - log.get_theme_font("normal_font").get_height(log.get_theme_font_size("normal_font_size")))
+	if event.is_action_pressed(&"ui_up", true) and Input.is_key_pressed(KEY_CTRL) and display_mode != DisplayMode.DISPLAY_MODE_HIDDEN:
+		var one_line_height := log.get_theme_font("normal_font").get_height(log.get_theme_font_size("normal_font_size"))
+		if Input.is_key_pressed(KEY_SHIFT):
+			split_container.split_offset = clamp(split_container.split_offset - one_line_height, panel_container.custom_minimum_size.y, split_container.size.y)
+		else:
+			log.get_v_scroll_bar().set_value(log.get_v_scroll_bar().get_value() - one_line_height)
 		get_viewport().set_input_as_handled()
 
-	if event.is_action_pressed(&"ui_down", true) and display_mode != DisplayMode.DISPLAY_MODE_HIDDEN and Input.is_key_pressed(KEY_SHIFT):
-		log.get_v_scroll_bar().set_value(log.get_v_scroll_bar().get_value() + log.get_theme_font("normal_font").get_height(log.get_theme_font_size("normal_font_size")))
+	if event.is_action_pressed(&"ui_down", true) and Input.is_key_pressed(KEY_CTRL) and display_mode != DisplayMode.DISPLAY_MODE_HIDDEN:
+		var one_line_height := log.get_theme_font("normal_font").get_height(log.get_theme_font_size("normal_font_size"))
+		if Input.is_key_pressed(KEY_SHIFT):
+			split_container.split_offset = clamp(split_container.split_offset + one_line_height, panel_container.custom_minimum_size.y, split_container.size.y)
+		else:
+			log.get_v_scroll_bar().set_value(log.get_v_scroll_bar().get_value() + one_line_height)
 		get_viewport().set_input_as_handled()
 
 	# Scroll through console input history.

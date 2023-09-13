@@ -14,11 +14,12 @@ content_margin_bottom = 10.0
 content_margin_right = 12.0
 content_margin_bottom = 8.0
 
-[node name="Console" type="CanvasLayer" node_paths=PackedStringArray("split_container", "log", "input_line", "version_label")]
+[node name="Console" type="CanvasLayer" node_paths=PackedStringArray("split_container", "panel_container", "log", "input_line", "version_label")]
 layer = 128
 visible = false
 script = ExtResource("1_8oyuj")
 split_container = NodePath("VSplitContainer")
+panel_container = NodePath("VSplitContainer/PanelContainer")
 log = NodePath("VSplitContainer/PanelContainer/MarginContainer/VBoxContainer/RichTextLabel")
 input_line = NodePath("VSplitContainer/PanelContainer/MarginContainer/VBoxContainer/LineEdit")
 version_label = NodePath("VSplitContainer/PanelContainer/MarginContainer/VBoxContainer/RichTextLabel/Label")
